@@ -72,34 +72,25 @@ appSurface.on('dblclick', function(data){
 				curY >= 0 ? transY.set(Math.min(curY, window.innerHeight - 100)) : transY.set(0)
 			});
 			sync.on('end', function(data) {
-				//console.log(data);
-				var velModX = 1;
-				var velModY = 1;
+				console.log(1000.0/data.velocity[0]);
+				console.log(1000.0/data.velocity[1]);
+				var velModX = data.velocity[0] >= 0 ? 1 : -1;
+				var velModY = data.velocity[1] >= 0 ? 1 : -1;
 				var velocityFactor = 100;
 
-				intervalId = Timer.setInterval(function() {	
-				//taskModifier.setTransform(function() {			
-					var curX = transX.get() + velModX * data.velocity[0] * velocityFactor;
-					var curY = transY.get() + velModY * data.velocity[1] * velocityFactor;
+				!function handleX(){
+					var destination = velModX === 1 ? window.innerWidth - 100 : 0;
+					var relativeTime = Math.abs(destination - transX.get()) / window.innerWidth;
+					transX.set(destination, { duration: Math.abs(100.0/data.velocity[0]*relativeTime), curve: function(x){return x;}}, handleX);
+					velModX = -velModX;					
+				}();
 
-					if (curX > window.innerWidth - 100) {
-						velModX = -velModX;
-						curX = transX.get() + velModX * data.velocity[0] * velocityFactor;
-					} else if (curX < 0) {
-						velModX = -velModX;
-						curX = transX.get() + velModX * data.velocity[0] * velocityFactor;
-					} 
-					if (curY > window.innerHeight - 100) {
-						velModY = -velModY;
-						curY = transY.get() + velModY * data.velocity[1] * velocityFactor;
-					} else if (curY < 0) {
-						velModY = -velModY;
-						curY = transY.get() + velModY * data.velocity[1] * velocityFactor;
-					} 
-					
-					transX.set(curX);
-					transY.set(curY);					
-				}, 20);
+				!function handleY(){
+					var destination = velModY === 1 ? window.innerHeight - 100 : 0;	
+					var relativeTime = Math.abs(destination - transY.get()) / window.innerHeight;									 
+					transY.set(destination, { duration: Math.abs(100.0/data.velocity[1]*relativeTime), curve: function(x){return x;}}, handleY);
+					velModY = -velModY;					
+				}();				
 			})
 			return sync;
 		}()
